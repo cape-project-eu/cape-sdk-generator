@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../../provider/pulumi/sdk/dotnet/Pulumi.Cape.csproj" />
+  <Project Path="PulumiDotnetExample.csproj" />
+</Solution>

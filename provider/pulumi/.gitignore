@@ -1,0 +1,4 @@
+*.gen.go
+sdk/
+PulumiPlugin.yaml
+bin/

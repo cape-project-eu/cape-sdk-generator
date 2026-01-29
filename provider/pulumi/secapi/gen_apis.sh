@@ -37,7 +37,7 @@ generate:
   models: true
 EOF
   
-    echo "Generating model for $base"
+    echo "Generating API for $base"
     go tool oapi-codegen -config ./config.yaml $spec_dir/$base
     rm -rf config.yaml
 done

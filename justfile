@@ -13,5 +13,21 @@ build_secapi_spec:
     @echo "Build secapi specification"
     cd ext/secapi && make resource-apis
 
-bundle_secapi_schematas:
-    npx @redocly/cli join ext/secapi/spec/schemas/*.yaml -o foo.yaml
+# Generate necessary files inside the pulumi provider
+build_pulumi_provider:
+    cd provider/pulumi && go generate ./...
+
+# Build the pulumi SDK out of the provider files
+build_pulumi_sdk local="false" version="0.0.0":
+    rm -rf provider/pulumi/sdk
+    rm -rf provider/pulumi/bin
+    cd provider/pulumi && go build -o bin/pulumi-resource-cape .
+    cd provider/pulumi && pulumi package gen-sdk --version {{version}} {{ if local != "false" { "--local" } else {""} }} ./
+
+# (Re)install the pulumi SDK locally
+install_pulumi_sdk:
+    pulumi plugin rm resource cape -y
+    pulumi plugin install resource cape 0.0.0 --file provider/pulumi/bin/pulumi-resource-cape
+
+# Build everything pulumi related in one go
+build_pulumi: build_secapi_spec build_pulumi_provider build_pulumi_sdk

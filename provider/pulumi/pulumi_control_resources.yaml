@@ -1,0 +1,37 @@
+resources:
+  Workspace:
+    package: workspace
+    withoutWorkspace: true
+    input:
+      - Labels
+      - Annotations
+      - Extensions
+      - Spec
+    output:
+      - Metadata
+      - Status
+    apiPackage: foundation/workspace/v1
+
+  Instance:
+    package: compute
+    input:
+      - Labels
+      - Annotations
+      - Extensions
+      - Spec
+    output:
+      - Metadata
+      - Status
+    apiPackage: foundation/compute/v1
+
+  BlockStorage:
+    package: storage
+    input:
+      - Labels
+      - Annotations
+      - Extensions
+      - Spec
+    output:
+      - Metadata
+      - Status
+    apiPackage: foundation/storage/v1
