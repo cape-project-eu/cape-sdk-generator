@@ -1,0 +1,10 @@
+http://localhost
+
+{{- range .Servers}}
+route {{.Prefix}}/* {
+{{- if .Prefix}}
+	uri strip_prefix {{.Prefix}}
+{{- end}}
+	reverse_proxy {{.Name}}:8080
+}
+{{- end}}

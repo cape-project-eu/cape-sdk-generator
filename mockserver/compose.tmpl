@@ -1,0 +1,20 @@
+version: '3'
+services:
+  proxy:
+    image: caddy
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    ports:
+      - '8080:80'
+    depends_on:
+{{- range .Servers}}
+      - {{.Name}}
+{{- end}}
+{{- range .Servers}}
+  {{.Name}}:
+    image: stoplight/prism:4
+    volumes:
+      - ../ext/secapi/dist/specs/{{.File}}:/spec.yaml:ro
+    command: >
+      mock -p 8080 --host 0.0.0.0 /spec.yaml
+{{- end}}
