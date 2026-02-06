@@ -1,0 +1,17 @@
+{
+  "name": "pulumi_nodejs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@pulumi/cape": "file:../../provider/pulumi/sdk/nodejs",
+    "@pulumi/pulumi": "^3.219.0"
+  }
+}
