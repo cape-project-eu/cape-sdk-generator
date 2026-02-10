@@ -5,7 +5,10 @@ using Pulumi.Cape.Workspace;
 
 return await Deployment.RunAsync(() =>
 {
-    var ws = new Workspace("myWorkspace", new());
+    var ws = new Workspace("myWorkspace", new()
+    {
+        Spec = new()
+    });
     var bs = new BlockStorage("myStorage", new()
     {
         Spec = new BlockStorageSpecArgs
