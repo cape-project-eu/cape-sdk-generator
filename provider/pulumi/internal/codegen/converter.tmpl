@@ -9,7 +9,7 @@ import (
 
 // goverter:variables
 // goverter:output:format assign-variable
-// goverter:output:file ./{{.Name}}.converter.init.gen.go
+// goverter:output:file ./{{.Name | lower}}.converter.init.gen.go
 // goverter:extend cape-project.eu/sdk-generator/provider/pulumi/internal/convertors:Convert.*
 // goverter:useZeroValueOnPointerInconsistency
 var (

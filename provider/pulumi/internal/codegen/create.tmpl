@@ -45,7 +45,7 @@ func ({{.Name}}) Create(
 		}, nil
 	}
 
-	client, err := newAPI(ctx, tenant, {{- if not .WithoutWorkspace}} workspace,{{end}} req.Name)
+	client, err := new{{.Name | pascalCase}}API(ctx, tenant, {{- if not .WithoutWorkspace}} workspace,{{end}} req.Name)
 	if err != nil {
 		return infer.CreateResponse[{{.Name}}State]{}, err
 	}

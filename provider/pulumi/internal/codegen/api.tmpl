@@ -13,7 +13,7 @@ import (
 	"github.com/pulumi/pulumi-go-provider/infer"
 )
 
-type api struct {
+type {{.Name | camelCase}}API struct {
 	client *{{.APIPackageID}}.ClientWithResponses
 	ctx    *context.Context
 	tenant string
@@ -23,7 +23,7 @@ type api struct {
 	name   string
 }
 
-func newAPI(ctx context.Context, tenant, {{- if not .WithoutWorkspace}} workspace,{{end}} name string) (*api, error) {
+func new{{.Name | pascalCase}}API(ctx context.Context, tenant, {{- if not .WithoutWorkspace}} workspace,{{end}} name string) (*{{.Name | camelCase}}API, error) {
 	config := infer.GetConfig[config.Config](ctx)
 	url := config.BaseURL
 	prefix := *config.{{.Package | pascalCase}}ProviderPrefix
@@ -42,7 +42,7 @@ func newAPI(ctx context.Context, tenant, {{- if not .WithoutWorkspace}} workspac
 		return nil, err
 	}
 
-	return &api{
+	return &{{.Name | camelCase}}API{
 		ctx:    &ctx,
 		client: client,
 		tenant: tenant,
@@ -53,7 +53,7 @@ func newAPI(ctx context.Context, tenant, {{- if not .WithoutWorkspace}} workspac
 	}, nil
 }
 
-func (obj *api) Get() (*models.{{.Name}}, error) {
+func (obj {{.Name | camelCase}}API) Get() (*models.{{.Name}}, error) {
 	getRes, err := obj.client.Get{{.Name}}WithResponse(*obj.ctx, obj.tenant, {{- if not .WithoutWorkspace}} obj.workspace,{{end}} obj.name)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (obj *api) Get() (*models.{{.Name}}, error) {
 	return getRes.JSON200, nil
 }
 
-func (obj *api) Exists() (bool, error) {
+func (obj {{.Name | camelCase}}API) Exists() (bool, error) {
 	getRes, err := obj.client.Get{{.Name}}WithResponse(*obj.ctx, obj.tenant, {{- if not .WithoutWorkspace}} obj.workspace,{{end}} obj.name)
 	if err != nil {
 		return false, err
@@ -73,7 +73,7 @@ func (obj *api) Exists() (bool, error) {
 	return getRes.StatusCode() == 200, nil
 }
 
-func (obj *api) WaitForActive() (*models.{{.Name}}, error) {
+func (obj {{.Name | camelCase}}API) WaitForActive() (*models.{{.Name}}, error) {
 	for {
 		result, err := obj.Get()
 		if err != nil {
@@ -86,7 +86,7 @@ func (obj *api) WaitForActive() (*models.{{.Name}}, error) {
 	}
 }
 
-func (obj *api) Create(in models.{{.Name}}) (*models.{{.Name}}, error) {
+func (obj {{.Name | camelCase}}API) Create(in models.{{.Name}}) (*models.{{.Name}}, error) {
 	res, err := obj.client.CreateOrUpdate{{.Name}}WithResponse(*obj.ctx, obj.tenant, {{- if not .WithoutWorkspace}} obj.workspace,{{end}} obj.name, nil, in)
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (obj *api) Create(in models.{{.Name}}) (*models.{{.Name}}, error) {
 	return res.JSON201, nil
 }
 
-func (obj *api) Update(in models.{{.Name}}) (*models.{{.Name}}, error) {
+func (obj {{.Name | camelCase}}API) Update(in models.{{.Name}}) (*models.{{.Name}}, error) {
 	res, err := obj.client.CreateOrUpdate{{.Name}}WithResponse(*obj.ctx, obj.tenant, {{- if not .WithoutWorkspace}} obj.workspace,{{end}} obj.name, nil, in)
 	if err != nil {
 		return nil, err
@@ -110,7 +110,7 @@ func (obj *api) Update(in models.{{.Name}}) (*models.{{.Name}}, error) {
 	return res.JSON200, nil
 }
 
-func (obj *api) Delete() error {
+func (obj {{.Name | camelCase}}API) Delete() error {
 	res, err := obj.client.Delete{{.Name}}WithResponse(*obj.ctx, obj.tenant, {{- if not .WithoutWorkspace}} obj.workspace,{{end}} obj.name, nil)
 	if err != nil {
 		return err

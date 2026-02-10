@@ -43,7 +43,7 @@ func ({{.Name}}) Update(
 		return infer.UpdateResponse[{{.Name}}State]{}, fmt.Errorf("workspace not given for {{.Name}} resource %s", req.State.Metadata.Name)
 	}
 {{- end}}
-	client, err := newAPI(ctx, tenant, {{- if not .WithoutWorkspace}} workspace,{{end}} req.State.Metadata.Name)
+	client, err := new{{.Name | pascalCase}}API(ctx, tenant, {{- if not .WithoutWorkspace}} workspace,{{end}} req.State.Metadata.Name)
 	if err != nil {
 		return infer.UpdateResponse[{{.Name}}State]{}, err
 	}

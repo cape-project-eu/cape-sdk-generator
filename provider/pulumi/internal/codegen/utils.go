@@ -49,6 +49,7 @@ var tmplFuncMap = template.FuncMap{
 	"lower":      strings.ToLower,
 	"upper":      strings.ToUpper,
 	"pascalCase": PascalCase,
+	"camelCase":  func(s string) string { return LowerCamel(PascalCase(s)) },
 }
 
 func ReadTemplate(name, filepath string) *template.Template {
