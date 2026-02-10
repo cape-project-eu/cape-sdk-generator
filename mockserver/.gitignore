@@ -1,2 +1,1 @@
-Caddyfile
-docker-compose.yaml
+*.gen.go
