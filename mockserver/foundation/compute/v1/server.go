@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"cape-project.eu/sdk-generator/provider/pulumi/secapi/models"
+	"cape-project.eu/sdk-generator/mockserver/models"
 	"github.com/gin-gonic/gin"
 )
 
