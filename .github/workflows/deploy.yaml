@@ -1,146 +1,165 @@
 name: Deploy
 
 on:
-    workflow_dispatch:
-    push:
-        branches:
-            - main
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
 
 jobs:
-    build-spec:
-        name: Build SecAPI Specification
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-        steps:
-            - name: Checkout repository (including submodules)
-              uses: actions/checkout@v4
-              with:
-                  submodules: recursive
+  build-spec:
+    name: Build SecAPI Specification
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository (including submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-            - name: Setup Go
-              uses: actions/setup-go@v5
-              with:
-                  go-version-file: go.mod
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "22"
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
-            - name: Install gomplate CLI
-              run: |
-                  go install github.com/hairyhenderson/gomplate/v4/cmd/gomplate@latest
-                  echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: Install gomplate CLI
+        run: |
+          go install github.com/hairyhenderson/gomplate/v4/cmd/gomplate@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
-            - name: Build specification in submodule
-              working-directory: ext/secapi
-              run: make build
+      - name: Build specification in submodule
+        working-directory: ext/secapi
+        run: make build
 
-            - name: Upload spec artifacts
-              uses: actions/upload-artifact@v4
-              with:
-                  name: secapi-spec-artifacts
-                  if-no-files-found: error
-                  path: |
-                      ext/secapi/spec
-                      ext/secapi/dist
+      - name: Upload spec artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: secapi-specs
+          if-no-files-found: error
+          path: |
+            ext/secapi/spec/*.yaml
 
-    build-and-push-mockserver:
-        name: Build and Push Mockserver
-        runs-on: ubuntu-latest
-        needs:
-            - build-spec
-        permissions:
-            contents: read
-            packages: write
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+  build-and-push-mockserver:
+    name: Build and Push Mockserver
+    runs-on: ubuntu-latest
+    needs:
+      - build-spec
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-            - name: Setup Go
-              uses: actions/setup-go@v5
-              with:
-                  go-version-file: go.mod
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
 
-            - name: Download spec artifacts
-              uses: actions/download-artifact@v4
-              with:
-                  name: secapi-spec-artifacts
-                  path: .
+      - name: Download spec artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: secapi-specs
+          path: ext/secapi/spec
 
-            - name: Generate OpenAPI server stubs
-              working-directory: mockserver
-              run: go generate ./...
+      - name: List specs
+        run: ls -la ext/secapi/spec
 
-            - name: Login to GitHub Container Registry
-              uses: docker/login-action@v3
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Generate OpenAPI server stubs
+        working-directory: mockserver
+        run: go generate ./...
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Build and push mockserver image
-              uses: docker/build-push-action@v6
-              with:
-                  context: .
-                  file: mockserver/Dockerfile
-                  build-args: |
-                      COMMIT_SHA=${{ github.sha }}
-                  push: true
-                  tags: |
-                      ghcr.io/cape-project-eu/cape-api-mockserver:latest
-                      ghcr.io/cape-project-eu/cape-api-mockserver:sha-${{ github.sha }}
-                  cache-from: type=gha
-                  cache-to: type=gha,mode=max
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    build-and-publish-pulumi-sdk:
-        name: Build and Publish Pulumi SDK
-        runs-on: ubuntu-latest
-        needs:
-            - build-spec
-        permissions:
-            contents: write
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
+      - name: Build and push mockserver image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: mockserver/Dockerfile
+          build-args: |
+            COMMIT_SHA=${{ github.sha }}
+          push: true
+          tags: |
+            ghcr.io/cape-project-eu/cape-api-mockserver:latest
+            ghcr.io/cape-project-eu/cape-api-mockserver:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-            - name: Setup Go
-              uses: actions/setup-go@v5
-              with:
-                  go-version-file: go.mod
+  build-and-publish-pulumi-sdk:
+    name: Build and Publish Pulumi SDK
+    runs-on: ubuntu-latest
+    needs:
+      - build-spec
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-            - name: Download spec artifacts
-              uses: actions/download-artifact@v4
-              with:
-                  name: secapi-spec-artifacts
-                  path: .
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
 
-            - name: Install Pulumi CLI
-              run: |
-                  curl -fsSL https://get.pulumi.com | sh
-                  echo "$HOME/.pulumi/bin" >> "$GITHUB_PATH"
-                  pulumi version
+      - run: go mod download
 
-            - name: Generate OpenAPI client/models and custom code
-              working-directory: provider/pulumi
-              run: go generate ./...
+      - name: Download spec artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: secapi-specs
+          path: ext/secapi/spec
 
-            - name: Build Pulumi provider and SDK
-              working-directory: provider/pulumi
-              run: pulumi package gen-sdk --version 0.0.0 --local ./
+      - name: List specs
+        run: ls -la ext/secapi/spec
 
-            - name: Verify SDK output folder
-              run: test -d provider/pulumi/sdk
+      - name: Install Pulumi CLI
+        run: |
+          curl -fsSL https://get.pulumi.com | sh
+          echo "$HOME/.pulumi/bin" >> "$GITHUB_PATH"
+          pulumi version
 
-            - name: Publish Pulumi SDK to dist/sdk/pulumi
-              uses: s0/git-publish-subdir-action@develop
-              env:
-                  REPO: self
-                  BRANCH: dist/sdk/pulumi
-                  FOLDER: provider/pulumi/sdk
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  MESSAGE: "chore(sdk): publish pulumi sdk from ${{ github.sha }}"
+      - name: Remove Mockserver code
+        run: rm -rf mockserver
+
+      - name: Generate OpenAPI client/models and custom code
+        working-directory: provider/pulumi
+        run: go generate ./...
+
+      - name: Build Pulumi provider and SDK
+        working-directory: provider/pulumi
+        run: pulumi package gen-sdk --version 0.0.0 --local ./
+
+      - name: Verify SDK output folder
+        run: test -d provider/pulumi/sdk
+
+      - name: Publish Pulumi SDK to dist/sdk/pulumi
+        uses: s0/git-publish-subdir-action@develop
+        env:
+          REPO: git@github.com:${{ github.repository }}
+          BRANCH: dist/sdk/pulumi
+          FOLDER: provider/pulumi/sdk
+          SSH_PRIVATE_KEY: ${{ secrets.SDK_DIST_KEY }}
+          MESSAGE: "chore(sdk): publish pulumi sdk from ${{ github.sha }}"
+          SQUASH_HISTORY: true

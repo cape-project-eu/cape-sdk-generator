@@ -5,7 +5,6 @@ COPY ./go.mod ./go.sum ./
 RUN go mod download
 
 COPY ./mockserver ./mockserver
-COPY ./provider ./provider
 WORKDIR /app/src/mockserver
 RUN CGO_ENABLED=0 go build -o /app/bin/mockserver
 
