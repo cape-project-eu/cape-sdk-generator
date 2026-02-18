@@ -6,28 +6,43 @@ import (
 	"fmt"
 
 	"cape-project.eu/provider/pulumi/config"
-{{""}}
-{{- range .Imports }}
-	{{ .Alias }} "{{ .Path }}"
+{{- $nr := 1 -}}
+{{- range $i, $v := .Resources }}
+	r_{{$nr}} "cape-project.eu/provider/pulumi/internal/{{$v.Package}}"
+	{{- $nr = add $nr 1 -}}
 {{- end }}
-{{""}}
+{{- $nr := 1 -}}
+{{- range $p, $v := .GetterFunctions }}
+	f_{{$nr}} "cape-project.eu/provider/pulumi/internal/{{$p}}"
+	{{- $nr = add $nr 1 -}}
+{{- end }}
 	p "github.com/pulumi/pulumi-go-provider"
 	"github.com/pulumi/pulumi-go-provider/infer"
 )
 
-const Version string = "{{.PulumiGenYaml.SDKVersion}}"
+const Version string = "{{.SDKVersion}}"
 
-const Name string = "{{ .Name }}"
+const Name string = "cape"
 
 func Provider() p.Provider {
 	p, err := infer.NewProviderBuilder().
-		WithDisplayName("{{ .DisplayName }}").
-		WithDescription("{{ .Description }}").
-		WithNamespace("{{ .Namespace }}").
-		WithConfig(infer.Config(config.Config{})).
-{{- range .Resources }}
-		WithResources(infer.Resource({{ .PackageAlias }}.{{ .Name }}{})).
+		WithDisplayName("pulumi-cape").
+		WithDescription("A pulumi provider built for CAPE Project resources.").
+		WithNamespace("pulumi").
+		WithConfig(infer.Config(&config.Config{})).
+{{$nr := 1}}
+{{- range $i, $v := .Resources }}
+		WithResources(infer.Resource(&r_{{$nr}}.{{$i}}{})).
+{{- $nr = add $nr 1 -}}
 {{- end }}
+{{$nr := 1}}
+{{- range $p, $funs := .GetterFunctions }}
+		{{- range $n, $fun := $funs }}
+		WithFunctions(infer.Function(&f_{{$nr}}.{{$n}}{})).
+		{{- end }}
+{{- $nr = add $nr 1 -}}
+{{- end }}
+
 		Build()
 
 	if err != nil {

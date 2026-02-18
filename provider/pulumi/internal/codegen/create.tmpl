@@ -58,7 +58,7 @@ func ({{.Name}}) Create(
 		return infer.CreateResponse[{{.Name}}State]{}, fmt.Errorf("{{.Name}} with name %s already exists", req.Name)
 	}
 
-	result, err := client.Create(convertArgsToOpenAPI(req.Inputs))
+	result, err := client.Create(convert{{.Name}}ArgsToOpenAPI(req.Inputs))
 	if err != nil {
 		return infer.CreateResponse[{{.Name}}State]{}, err
 	}
@@ -70,6 +70,6 @@ func ({{.Name}}) Create(
 
 	return infer.CreateResponse[{{.Name}}State]{
 		ID:     fmt.Sprintf("%s-{{if not .WithoutWorkspace}}%s-{{end}}%s-%s-%s", result.Metadata.Tenant, {{- if not .WithoutWorkspace}} result.Metadata.Workspace,{{end}} result.Metadata.Kind, result.Metadata.ApiVersion, result.Metadata.Name),
-		Output: convertAPIResultToPulumiState(*result),
+		Output: convertOpenAPITo{{.Name}}State(*result),
 	}, nil
 }

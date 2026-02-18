@@ -56,7 +56,7 @@ func ({{.Name}}) Update(
 		return infer.UpdateResponse[{{.Name}}State]{}, fmt.Errorf("{{.Name}} with name %s does not exists", req.State.Metadata.Name)
 	}
 
-	result, err := client.Update(convertArgsToOpenAPI(req.Inputs))
+	result, err := client.Update(convert{{.Name}}ArgsToOpenAPI(req.Inputs))
 	if err != nil {
 		return infer.UpdateResponse[{{.Name}}State]{}, err
 	}
@@ -67,6 +67,6 @@ func ({{.Name}}) Update(
 	}
 
 	return infer.UpdateResponse[{{.Name}}State]{
-		Output: convertAPIResultToPulumiState(*result),
+		Output: convertOpenAPITo{{.Name}}State(*result),
 	}, nil
 }

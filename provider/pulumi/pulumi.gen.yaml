@@ -36,3 +36,12 @@ resources:
       - Metadata
       - Status
     apiPackage: foundation/storage/v1
+
+getterFunctions:
+  storage:
+    GetSkus:
+      apiPackage: foundation/storage/v1
+      withoutWorkspace: true
+      clientFunction: ListSkus
+      responseType: SkuIterator
+      outputType: StorageSku

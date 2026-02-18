@@ -9,7 +9,7 @@ import (
 
 // goverter:variables
 // goverter:output:format assign-variable
-// goverter:output:file ./{{.Name | lower}}.converter.init.gen.go
+// goverter:output:file ./converters.init.gen.go
 // goverter:extend cape-project.eu/provider/pulumi/internal/convertors:Convert.*
 // goverter:useZeroValueOnPointerInconsistency
 var (
@@ -17,14 +17,14 @@ var (
 
 	// goverter:ignore Metadata
 	// goverter:ignore Status
-	convertArgsToOpenAPI func({{.Name}}Args) models.{{.Name}}
+	convert{{.Name}}ArgsToOpenAPI func({{.Name}}Args) models.{{.Name}}
 
 	// goverter:map . {{.Name}}Args
-	convertAPIResultToPulumiState func(models.{{.Name}}) {{.Name}}State
+	convertOpenAPITo{{.Name}}State func(models.{{.Name}}) {{.Name}}State
 
 	// goverter:map Metadata.Tenant Tenant
 {{- if not .WithoutWorkspace}}
 	// goverter:map Metadata.Workspace Workspace
 {{- end}}
-	convertAPIResultToPulumiArgs func(models.{{.Name}}) {{.Name}}Args
+	convertOpenAPIToPulumi{{.Name}}Args func(models.{{.Name}}) {{.Name}}Args
 )

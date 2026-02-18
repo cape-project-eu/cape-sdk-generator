@@ -44,6 +44,6 @@ func ({{.Name}}) Read(
 	return infer.ReadResponse[{{.Name}}Args, {{.Name}}State]{
 		ID:     fmt.Sprintf("%s-{{if not .WithoutWorkspace}}%s-{{end}}%s-%s-%s", result.Metadata.Tenant, {{- if not .WithoutWorkspace}} result.Metadata.Workspace,{{end}} result.Metadata.Kind, result.Metadata.ApiVersion, result.Metadata.Name),
 		Inputs: req.Inputs,
-		State: convertAPIResultToPulumiState(*result),
+		State: convertOpenAPITo{{.Name}}State(*result),
 	}, nil
 }

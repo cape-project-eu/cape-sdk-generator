@@ -50,6 +50,7 @@ var tmplFuncMap = template.FuncMap{
 	"upper":      strings.ToUpper,
 	"pascalCase": PascalCase,
 	"camelCase":  func(s string) string { return LowerCamel(PascalCase(s)) },
+	"add":        func(a, b int) int { return a + b },
 }
 
 func ReadTemplate(name, filepath string) *template.Template {
@@ -60,27 +61,36 @@ func ReadTemplate(name, filepath string) *template.Template {
 }
 
 type PulumiGenYaml struct {
-	SDKVersion string                         `yaml:"sdkVersion"`
-	Resources  map[string]ControlResourceSpec `yaml:"resources"`
+	SDKVersion      string                                       `yaml:"sdkVersion"`
+	Resources       map[string]ControlResourceSpec               `yaml:"resources"`
+	GetterFunctions map[string]map[string]ProviderGetterFunction `yaml:"getterFunctions"`
 }
 
 type ControlResourceSpec struct {
-	Package              string             `yaml:"package"`
-	APIPackage           string             `yaml:"apiPackage"`
-	WithoutWorkspace     bool               `yaml:"withoutWorkspace"`
-	WithCustomGenerators bool               `yaml:"withCustomGenerators"`
-	Input                []ControlFieldSpec `yaml:"input"`
-	Output               []ControlFieldSpec `yaml:"output"`
+	Package              string      `yaml:"package"`
+	APIPackage           string      `yaml:"apiPackage"`
+	WithoutWorkspace     bool        `yaml:"withoutWorkspace"`
+	WithCustomGenerators bool        `yaml:"withCustomGenerators"`
+	Input                []InOutSpec `yaml:"input"`
+	Output               []InOutSpec `yaml:"output"`
 }
 
-type ControlFieldSpec struct {
+type ProviderGetterFunction struct {
+	APIPackage       string `yaml:"apiPackage"`
+	WithoutWorkspace bool   `yaml:"withoutWorkspace"`
+	ClientFunction   string `yaml:"clientFunction"`
+	OutputType       string `yaml:"outputType"`
+	ResponseType     string `yaml:"responseType"`
+}
+
+type InOutSpec struct {
 	Name        string
 	Type        string
 	Description string
 	Default     *yaml.Node
 }
 
-func (c *ControlFieldSpec) UnmarshalYAML(value *yaml.Node) error {
+func (c *InOutSpec) UnmarshalYAML(value *yaml.Node) error {
 	if value == nil {
 		return nil
 	}
