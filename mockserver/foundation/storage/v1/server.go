@@ -3,6 +3,9 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"regexp"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -13,6 +16,32 @@ import (
 type server struct {
 	mu            sync.RWMutex
 	blockStorages map[string]models.BlockStorage
+}
+
+type storageSKUDefinition struct {
+	name          string
+	tier          string
+	iops          int
+	storageType   models.StorageSkuSpecType
+	minVolumeSize int
+}
+
+var storageSKUCatalog = []storageSKUDefinition{
+	{name: "seca.rd100", tier: "RD100", iops: 100, storageType: models.StorageSkuTypeRemoteDurable, minVolumeSize: 50},
+	{name: "seca.rd500", tier: "RD500", iops: 500, storageType: models.StorageSkuTypeRemoteDurable, minVolumeSize: 50},
+	{name: "seca.rd2k", tier: "RD2K", iops: 2000, storageType: models.StorageSkuTypeRemoteDurable, minVolumeSize: 50},
+	{name: "seca.rd10k", tier: "RD10K", iops: 10000, storageType: models.StorageSkuTypeRemoteDurable, minVolumeSize: 50},
+	{name: "seca.rd20k", tier: "RD20K", iops: 20000, storageType: models.StorageSkuTypeRemoteDurable, minVolumeSize: 50},
+	{name: "seca.ld100", tier: "LD100", iops: 100, storageType: models.StorageSkuTypeLocalDurable, minVolumeSize: 50},
+	{name: "seca.ld500", tier: "LD500", iops: 500, storageType: models.StorageSkuTypeLocalDurable, minVolumeSize: 50},
+	{name: "seca.ld5k", tier: "LD5K", iops: 5000, storageType: models.StorageSkuTypeLocalDurable, minVolumeSize: 50},
+	{name: "seca.ld20k", tier: "LD20K", iops: 20000, storageType: models.StorageSkuTypeLocalDurable, minVolumeSize: 50},
+	{name: "seca.ld40k", tier: "LD40K", iops: 40000, storageType: models.StorageSkuTypeLocalDurable, minVolumeSize: 50},
+	{name: "seca.le100", tier: "LE100", iops: 100, storageType: models.StorageSkuTypeLocalEphemeral, minVolumeSize: 50},
+	{name: "seca.le500", tier: "LE500", iops: 500, storageType: models.StorageSkuTypeLocalEphemeral, minVolumeSize: 50},
+	{name: "seca.le5k", tier: "LE5K", iops: 5000, storageType: models.StorageSkuTypeLocalEphemeral, minVolumeSize: 50},
+	{name: "seca.le20k", tier: "LE20K", iops: 20000, storageType: models.StorageSkuTypeLocalEphemeral, minVolumeSize: 50},
+	{name: "seca.le40k", tier: "LE40K", iops: 40000, storageType: models.StorageSkuTypeLocalEphemeral, minVolumeSize: 50},
 }
 
 func RegisterServer(router gin.IRouter) {
@@ -39,12 +68,34 @@ func (s *server) CreateOrUpdateImage(c *gin.Context, _tenant models.TenantPathPa
 	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
 }
 
-func (s *server) ListSkus(c *gin.Context, _tenant models.TenantPathParam, _params ListSkusParams) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
+func (s *server) ListSkus(c *gin.Context, tenant models.TenantPathParam, params ListSkusParams) {
+	skus := make([]models.StorageSku, 0, len(storageSKUCatalog))
+	for _, def := range storageSKUCatalog {
+		sku := storageSKUFromDefinition(tenant, def)
+		if params.Labels != nil && !matchesLabelSelector(sku.Labels, string(*params.Labels)) {
+			continue
+		}
+		skus = append(skus, sku)
+	}
+
+	c.JSON(http.StatusOK, SkuIterator{
+		Items: skus,
+		Metadata: models.ResponseMetadata{
+			Provider: "seca.storage/v1",
+			Resource: fmt.Sprintf("tenants/%s/skus", tenant),
+			Verb:     "list",
+		},
+	})
 }
 
-func (s *server) GetSku(c *gin.Context, _tenant models.TenantPathParam, _name models.ResourcePathParam) {
-	c.JSON(http.StatusNotImplemented, gin.H{"error": "not implemented"})
+func (s *server) GetSku(c *gin.Context, tenant models.TenantPathParam, name models.ResourcePathParam) {
+	for _, def := range storageSKUCatalog {
+		if def.name == name {
+			c.JSON(http.StatusOK, storageSKUFromDefinition(tenant, def))
+			return
+		}
+	}
+	c.JSON(http.StatusNotFound, gin.H{"error": "sku not found"})
 }
 
 func (s *server) ListBlockStorages(c *gin.Context, tenant models.TenantPathParam, workspace models.WorkspacePathParam, _params ListBlockStoragesParams) {
@@ -228,4 +279,134 @@ func setBlockStorageState(blockStorage *models.BlockStorage, state models.Resour
 
 func blockStorageKey(tenant models.TenantPathParam, workspace models.WorkspacePathParam, name models.ResourcePathParam) string {
 	return fmt.Sprintf("%s-%s-%s", tenant, workspace, name)
+}
+
+func storageSKUFromDefinition(tenant models.TenantPathParam, def storageSKUDefinition) models.StorageSku {
+	return models.StorageSku{
+		Labels: models.Labels{
+			"provider":      "seca",
+			"tier":          def.tier,
+			"type":          string(def.storageType),
+			"iops":          strconv.Itoa(def.iops),
+			"minVolumeSize": strconv.Itoa(def.minVolumeSize),
+		},
+		Metadata: &models.SkuResourceMetadata{
+			ApiVersion: "v1",
+			Kind:       models.SkuResourceMetadataKindResourceKindStorageSku,
+			Name:       def.name,
+			Provider:   "seca.storage/v1",
+			Region:     "eu-central-1",
+			Resource:   fmt.Sprintf("tenants/%s/skus/%s", tenant, def.name),
+			Tenant:     tenant,
+			Verb:       "get",
+		},
+		Spec: &models.StorageSkuSpec{
+			Iops:          def.iops,
+			MinVolumeSize: def.minVolumeSize,
+			Type:          def.storageType,
+		},
+	}
+}
+
+func matchesLabelSelector(labels models.Labels, selector string) bool {
+	selector = strings.TrimSpace(selector)
+	if selector == "" {
+		return true
+	}
+
+	filters := strings.SplitSeq(selector, ",")
+	for filter := range filters {
+		if !matchesLabelFilter(labels, strings.TrimSpace(filter)) {
+			return false
+		}
+	}
+	return true
+}
+
+func matchesLabelFilter(labels models.Labels, filter string) bool {
+	if filter == "" {
+		return true
+	}
+
+	operators := []string{"!=", ">=", "<=", "=", ">", "<"}
+	for _, operator := range operators {
+		if !strings.Contains(filter, operator) {
+			continue
+		}
+
+		parts := strings.SplitN(filter, operator, 2)
+		if len(parts) != 2 {
+			return false
+		}
+
+		keyPattern := strings.TrimSpace(parts[0])
+		valuePattern := strings.TrimSpace(parts[1])
+		if keyPattern == "" {
+			return false
+		}
+
+		switch operator {
+		case "=":
+			for key, value := range labels {
+				if matchPattern(keyPattern, key) && matchPattern(valuePattern, value) {
+					return true
+				}
+			}
+			return false
+		case "!=":
+			for key, value := range labels {
+				if matchPattern(keyPattern, key) && matchPattern(valuePattern, value) {
+					return false
+				}
+			}
+			return true
+		default:
+			target, err := strconv.ParseFloat(valuePattern, 64)
+			if err != nil {
+				return false
+			}
+			for key, value := range labels {
+				if !matchPattern(keyPattern, key) {
+					continue
+				}
+				current, err := strconv.ParseFloat(value, 64)
+				if err != nil {
+					continue
+				}
+				switch operator {
+				case ">":
+					if current > target {
+						return true
+					}
+				case "<":
+					if current < target {
+						return true
+					}
+				case ">=":
+					if current >= target {
+						return true
+					}
+				case "<=":
+					if current <= target {
+						return true
+					}
+				}
+			}
+			return false
+		}
+	}
+
+	return false
+}
+
+func matchPattern(pattern string, value string) bool {
+	if strings.Contains(pattern, "*") {
+		regex := "^" + strings.ReplaceAll(regexp.QuoteMeta(pattern), "\\*", ".*") + "$"
+		re, err := regexp.Compile(regex)
+		if err != nil {
+			return false
+		}
+		return re.MatchString(value)
+	}
+	return value == pattern
 }
