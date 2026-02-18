@@ -15,7 +15,7 @@ import (
 
 	"go.yaml.in/yaml/v4"
 
-	"cape-project.eu/sdk-generator/provider/pulumi/internal/codegen"
+	"cape-project.eu/provider/pulumi/internal/codegen"
 )
 
 const (

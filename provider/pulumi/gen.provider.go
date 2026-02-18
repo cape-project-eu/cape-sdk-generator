@@ -9,13 +9,13 @@ import (
 	"sort"
 	"text/template"
 
-	"cape-project.eu/sdk-generator/provider/pulumi/internal/codegen"
+	"cape-project.eu/provider/pulumi/internal/codegen"
 )
 
 const PulumiControlResourceFile = "pulumi.gen.yaml"
 const ProviderTemplatePath = "internal/codegen/provider.tmpl"
 const PulumiPluginTemplatePath = "internal/codegen/pulumi_plugin.tmpl"
-const ResourceImportBase = "cape-project.eu/sdk-generator/provider/pulumi/internal"
+const ResourceImportBase = "cape-project.eu/provider/pulumi/internal"
 
 var providerTemplate = codegen.ReadTemplate("provider", ProviderTemplatePath)
 var pulumiPluginTemplate = codegen.ReadTemplate("pulumiplugin", PulumiPluginTemplatePath)

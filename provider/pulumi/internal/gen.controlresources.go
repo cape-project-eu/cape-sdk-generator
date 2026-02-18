@@ -13,12 +13,12 @@ import (
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	"go.yaml.in/yaml/v4"
 
-	"cape-project.eu/sdk-generator/provider/pulumi/internal/codegen"
+	"cape-project.eu/provider/pulumi/internal/codegen"
 )
 
 const SchemasDir = "../../../ext/secapi/spec/schemas"
 const PulumiControlResourceFile = "../pulumi.gen.yaml"
-const SchemasImportPath = "cape-project.eu/sdk-generator/provider/pulumi/internal/schemas"
+const SchemasImportPath = "cape-project.eu/provider/pulumi/internal/schemas"
 
 var resourceTemplate = codegen.ReadTemplate("resource", "codegen/resource.tmpl")
 var createTemplate = codegen.ReadTemplate("create", "codegen/create.tmpl")

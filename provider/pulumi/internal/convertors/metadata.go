@@ -1,8 +1,8 @@
 package convertors
 
 import (
-	"cape-project.eu/sdk-generator/provider/pulumi/internal/schemas"
-	"cape-project.eu/sdk-generator/provider/pulumi/secapi/models"
+	"cape-project.eu/provider/pulumi/internal/schemas"
+	"cape-project.eu/provider/pulumi/secapi/models"
 )
 
 // goverter:variables

@@ -42,7 +42,7 @@ run_mockserver:
 
 # Build the mockserver as docker image
 build_mockserver_docker tag="pulumi-cape-mockserver":
-    docker build -t {{tag}} -f mockserver/Dockerfile .
+    docker build --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') -t {{tag}} -f mockserver/Dockerfile .
 
 # Run the previous built docker mockserver
 run_mockserver_docker tag="pulumi-cape-mockserver":

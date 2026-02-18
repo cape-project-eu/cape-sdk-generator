@@ -12,7 +12,7 @@ import (
 	"github.com/pb33f/libopenapi/datamodel/high/base"
 	"go.yaml.in/yaml/v4"
 
-	"cape-project.eu/sdk-generator/provider/pulumi/internal/codegen"
+	"cape-project.eu/provider/pulumi/internal/codegen"
 )
 
 const SchemasDir = "../../../../ext/secapi/spec/schemas"

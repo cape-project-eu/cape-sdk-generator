@@ -3,14 +3,14 @@
 package {{.Package}}
 
 import (
-	"cape-project.eu/sdk-generator/provider/pulumi/internal/schemas"
-	"cape-project.eu/sdk-generator/provider/pulumi/secapi/models"
+	"cape-project.eu/provider/pulumi/internal/schemas"
+	"cape-project.eu/provider/pulumi/secapi/models"
 )
 
 // goverter:variables
 // goverter:output:format assign-variable
 // goverter:output:file ./{{.Name | lower}}.converter.init.gen.go
-// goverter:extend cape-project.eu/sdk-generator/provider/pulumi/internal/convertors:Convert.*
+// goverter:extend cape-project.eu/provider/pulumi/internal/convertors:Convert.*
 // goverter:useZeroValueOnPointerInconsistency
 var (
 	Convert{{.Name}}SpecToAPI func(schemas.{{.Name}}Spec) models.{{.Name}}Spec
