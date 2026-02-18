@@ -12,7 +12,7 @@ basenames=$(basename -a $files)
 
 import_mappings=""
 for base in $schema_basenames; do
-  import_mappings+="  ./schemas/$base: cape-project.eu/sdk-generator/mockserver/models"$'\n'
+  import_mappings+="  ./schemas/$base: cape-project.eu/mockserver/models"$'\n'
 done
 
 for base in $basenames; do

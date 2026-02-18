@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"cape-project.eu/sdk-generator/mockserver/models"
+	"cape-project.eu/mockserver/models"
 	"github.com/gin-gonic/gin"
 )
 

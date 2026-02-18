@@ -13,9 +13,9 @@ import (
 	"syscall"
 	"time"
 
-	c_v1 "cape-project.eu/sdk-generator/mockserver/foundation/compute/v1"
-	s_v1 "cape-project.eu/sdk-generator/mockserver/foundation/storage/v1"
-	ws_v1 "cape-project.eu/sdk-generator/mockserver/foundation/workspace/v1"
+	c_v1 "cape-project.eu/mockserver/foundation/compute/v1"
+	s_v1 "cape-project.eu/mockserver/foundation/storage/v1"
+	ws_v1 "cape-project.eu/mockserver/foundation/workspace/v1"
 	"github.com/gin-gonic/gin"
 )
 
